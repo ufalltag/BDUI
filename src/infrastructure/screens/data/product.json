@@ -1,0 +1,79 @@
+{
+  "screen_id": "product",
+  "layout": "ProductDetailLayout",
+  "navigation": {
+    "tab_bar": false,
+    "back_button": true,
+    "title": ""
+  },
+  "components": [
+    {
+      "type": "header",
+      "id": "header",
+      "props": { "back_button": true, "actions": ["share", "bookmark"] }
+    },
+    {
+      "type": "image_gallery",
+      "id": "gallery",
+      "props": { "style": "paged", "aspect_ratio": "4:3", "show_dots": true }
+    },
+    {
+      "type": "product_info",
+      "id": "info",
+      "children": [
+        { "type": "text", "id": "product_name",  "style": { "font": "title2", "weight": "bold" } },
+        { "type": "text", "id": "product_brand", "style": { "font": "subheadline", "color": "secondary" } },
+        {
+          "type": "rating_row",
+          "id": "rating_row",
+          "children": [
+            { "type": "rating", "id": "stars",        "props": { "max_stars": 5 } },
+            { "type": "text",   "id": "review_count", "style": { "font": "footnote", "color": "secondary" } }
+          ]
+        },
+        {
+          "type": "price_row",
+          "id": "price_row",
+          "children": [
+            { "type": "text", "id": "price",          "style": { "font": "title", "color": "accent" } },
+            { "type": "text", "id": "price_original", "style": { "font": "body", "strikethrough": true, "color": "secondary" } }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "id": "color_picker",
+      "props": { "label": "Color", "style": "swatch" }
+    },
+    {
+      "type": "quantity_stepper",
+      "id": "qty",
+      "props": { "min": 1, "max": 99 }
+    },
+    {
+      "type": "expandable_section",
+      "id": "description",
+      "props": { "title": "Description", "initially_expanded": true },
+      "children": [
+        { "type": "text", "id": "desc_text", "style": { "font": "body" } }
+      ]
+    },
+    {
+      "type": "expandable_section",
+      "id": "reviews_section",
+      "props": { "title": "Reviews", "initially_expanded": false },
+      "children": [
+        { "type": "review_list", "id": "reviews", "props": { "max_items": 3 } }
+      ]
+    },
+    {
+      "type": "sticky_footer",
+      "id": "cta",
+      "children": [
+        { "type": "button", "id": "add_to_cart_btn", "props": { "style": "primary",   "action": "add_to_cart", "full_width": true } },
+        { "type": "button", "id": "buy_now_btn",     "props": { "style": "secondary", "action": "buy_now",     "full_width": true } }
+      ]
+    }
+  ]
+}

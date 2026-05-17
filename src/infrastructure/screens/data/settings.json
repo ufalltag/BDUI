@@ -1,0 +1,61 @@
+{
+  "screen_id": "settings",
+  "layout": "SettingsScreenLayout",
+  "navigation": {
+    "tab_bar": false,
+    "back_button": true,
+    "title": "Settings"
+  },
+  "components": [
+    {
+      "type": "header",
+      "id": "header",
+      "props": { "back_button": true }
+    },
+    {
+      "type": "settings_group",
+      "id": "account_section",
+      "props": { "title": "Account" },
+      "children": [
+        { "type": "settings_row",   "id": "row_edit_profile", "props": { "icon": "person",   "action": "open_edit_profile", "chevron": true } },
+        { "type": "settings_row",   "id": "row_change_email", "props": { "icon": "envelope", "action": "open_change_email", "chevron": true } },
+        { "type": "settings_row",   "id": "row_change_phone", "props": { "icon": "phone",    "action": "open_change_phone", "chevron": true } },
+        { "type": "settings_row",   "id": "row_password",     "props": { "icon": "lock",     "action": "open_change_pass",  "chevron": true } }
+      ]
+    },
+    {
+      "type": "settings_group",
+      "id": "notifications_section",
+      "props": { "title": "Notifications" },
+      "children": [
+        { "type": "settings_toggle", "id": "toggle_push",  "props": { "icon": "bell",     "label": "Push Notifications"  } },
+        { "type": "settings_toggle", "id": "toggle_email", "props": { "icon": "envelope", "label": "Email Notifications" } },
+        { "type": "settings_toggle", "id": "toggle_sms",   "props": { "icon": "message",  "label": "SMS Notifications"   } }
+      ]
+    },
+    {
+      "type": "settings_group",
+      "id": "privacy_section",
+      "props": { "title": "Privacy" },
+      "children": [
+        { "type": "settings_toggle", "id": "toggle_private",  "props": { "icon": "eye.slash",  "label": "Private Account" } },
+        { "type": "settings_row",    "id": "row_blocked",     "props": { "icon": "nosign",     "action": "open_blocked", "chevron": true } },
+        { "type": "settings_row",    "id": "row_data_export", "props": { "icon": "arrow.down", "action": "open_export",  "chevron": true } }
+      ]
+    },
+    {
+      "type": "settings_group",
+      "id": "support_section",
+      "props": { "title": "Support" },
+      "children": [
+        { "type": "settings_row", "id": "row_help",  "props": { "icon": "questionmark.circle", "action": "open_help",  "chevron": true } },
+        { "type": "settings_row", "id": "row_about", "props": { "icon": "info.circle",         "action": "open_about", "chevron": true } }
+      ]
+    },
+    {
+      "type": "button",
+      "id": "logout_btn",
+      "props": { "style": "destructive", "action": "logout" }
+    }
+  ]
+}

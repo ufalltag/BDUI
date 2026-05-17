@@ -1,0 +1,44 @@
+{
+  "screen_id": "catalog",
+  "layout": "CatalogScreenLayout",
+  "navigation": {
+    "tab_bar": true,
+    "tab_index": 1,
+    "back_button": false,
+    "title": "Catalog"
+  },
+  "components": [
+    {
+      "type": "search_bar",
+      "id": "search",
+      "props": { "placeholder": "Search products...", "debounce_ms": 300 }
+    },
+    {
+      "type": "filter_chips",
+      "id": "filters",
+      "props": { "scroll": "horizontal", "multi_select": false }
+    },
+    {
+      "type": "sort_bar",
+      "id": "sort",
+      "props": { "options": ["popular", "newest", "price_asc", "price_desc"], "default": "popular" }
+    },
+    {
+      "type": "product_grid",
+      "id": "products",
+      "props": { "columns": 2, "spacing": 12, "pagination": "paged" },
+      "item_template": {
+        "type": "product_card",
+        "id": "product_card_template",
+        "children": [
+          { "type": "image",  "id": "product_image",  "props": { "aspect_ratio": "1:1", "corner_radius": 12 } },
+          { "type": "badge",  "id": "product_badge",  "props": { "position": "top_left" } },
+          { "type": "text",   "id": "product_name",   "style": { "font": "subheadline", "lines": 2 } },
+          { "type": "rating", "id": "product_rating", "props": { "max_stars": 5 } },
+          { "type": "text",   "id": "product_price",  "style": { "font": "headline", "color": "accent" } },
+          { "type": "button", "id": "add_to_cart",    "props": { "style": "icon", "icon": "cart.badge.plus" } }
+        ]
+      }
+    }
+  ]
+}

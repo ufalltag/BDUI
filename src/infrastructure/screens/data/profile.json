@@ -1,0 +1,46 @@
+{
+  "screen_id": "profile",
+  "layout": "ProfileScreenLayout",
+  "navigation": {
+    "tab_bar": false,
+    "back_button": true,
+    "title": "Profile"
+  },
+  "components": [
+    {
+      "type": "header",
+      "id": "header",
+      "props": { "back_button": true, "actions": ["share", "more"] }
+    },
+    {
+      "type": "profile_hero",
+      "id": "hero",
+      "children": [
+        { "type": "avatar",  "id": "avatar",   "props": { "size": "large", "shape": "circle" } },
+        { "type": "text",    "id": "username",  "style": { "font": "title2", "weight": "bold" } },
+        { "type": "text",    "id": "handle",    "style": { "font": "subheadline", "color": "secondary" } },
+        { "type": "text",    "id": "bio",       "style": { "font": "body", "lines": 3 } },
+        { "type": "button",  "id": "edit_btn",  "props": { "style": "outline", "action": "open_edit_profile" } }
+      ]
+    },
+    {
+      "type": "stats_row",
+      "id": "stats",
+      "children": [
+        { "type": "stat_item", "id": "posts_count",     "props": { "label": "Posts" } },
+        { "type": "stat_item", "id": "followers_count", "props": { "label": "Followers" } },
+        { "type": "stat_item", "id": "following_count", "props": { "label": "Following" } }
+      ]
+    },
+    {
+      "type": "tab_switcher",
+      "id": "content_tabs",
+      "props": { "tabs": ["grid", "tagged"] }
+    },
+    {
+      "type": "photo_grid",
+      "id": "posts_grid",
+      "props": { "columns": 3, "spacing": 2, "aspect_ratio": "1:1" }
+    }
+  ]
+}
