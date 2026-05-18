@@ -6,9 +6,11 @@ import BDUIClient
 
 private final class MockScreenLoader: BDUIScreenLoaderProtocol {
     var result: Result<ScreenData, Error> = .failure(BDUIError.serverError(statusCode: 503))
+    var lastForceRefresh = false
 
-    func load(screenId: String) async throws -> ScreenData {
-        try result.get()
+    func load(screenId: String, forceRefresh: Bool) async throws -> ScreenData {
+        lastForceRefresh = forceRefresh
+        return try result.get()
     }
 }
 
@@ -271,5 +273,29 @@ final class BDUIScreenPresenterTests: XCTestCase {
         wait(for: [exp], timeout: 2.0)
 
         XCTAssertEqual(mockView.buildLayoutCount, 0)
+    }
+
+    // MARK: Force refresh
+
+    func test_forceRefresh_passesForceRefreshTrue() {
+        let exp = expectation(description: "applyDynamic called")
+        mockView.onApplyDynamic = { exp.fulfill() }
+        mockLoader.result = .success(makeScreenData())
+
+        presenter.forceRefresh()
+        wait(for: [exp], timeout: 2.0)
+
+        XCTAssertTrue(mockLoader.lastForceRefresh)
+    }
+
+    func test_viewDidLoad_doesNotPassForceRefresh() {
+        let exp = expectation(description: "applyDynamic called")
+        mockView.onApplyDynamic = { exp.fulfill() }
+        mockLoader.result = .success(makeScreenData())
+
+        presenter.viewDidLoad()
+        wait(for: [exp], timeout: 2.0)
+
+        XCTAssertFalse(mockLoader.lastForceRefresh)
     }
 }

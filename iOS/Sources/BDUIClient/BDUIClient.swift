@@ -19,7 +19,7 @@ public enum BDUIError: Error, LocalizedError {
 // MARK: - Protocol (for testability)
 
 public protocol BDUIClientProtocol {
-    func fetch(screenId: String, cachedKey: String?) async throws -> BDUIServerResponse
+    func fetch(screenId: String, cachedKey: String?, dynamicKey: String?) async throws -> BDUIServerResponse
 }
 
 // MARK: - URLSession implementation
@@ -35,10 +35,12 @@ public final class BDUIClient: BDUIClientProtocol {
     }
 
     /// Fetch a screen from the server.
-    /// - Parameter cachedKey: The locally stored cache_key, or nil on first request.
-    /// - Returns: Decoded server response (full or cache hit).
-    public func fetch(screenId: String, cachedKey: String?) async throws -> BDUIServerResponse {
-        let url = try buildURL(screenId: screenId, cachedKey: cachedKey)
+    /// - Parameters:
+    ///   - cachedKey: The locally stored cache_key, or nil on first request.
+    ///   - dynamicKey: The locally stored dynamic_key, or nil if not yet known.
+    /// - Returns: Decoded server response (full, cache hit, or dynamic hit).
+    public func fetch(screenId: String, cachedKey: String?, dynamicKey: String?) async throws -> BDUIServerResponse {
+        let url = try buildURL(screenId: screenId, cachedKey: cachedKey, dynamicKey: dynamicKey)
         let request = buildRequest(url: url)
         let (data, response) = try await session.data(for: request)
 
@@ -84,16 +86,17 @@ public final class BDUIClient: BDUIClientProtocol {
         return request
     }
 
-    private func buildURL(screenId: String, cachedKey: String?) throws -> URL {
+    private func buildURL(screenId: String, cachedKey: String?, dynamicKey: String?) throws -> URL {
         guard var components = URLComponents(
             url: baseURL.appendingPathComponent("/bdui/screen/\(screenId)"),
             resolvingAgainstBaseURL: false
         ) else {
             throw BDUIError.invalidURL
         }
-        if let key = cachedKey {
-            components.queryItems = [URLQueryItem(name: "cache_key", value: key)]
-        }
+        var items: [URLQueryItem] = []
+        if let key = cachedKey  { items.append(URLQueryItem(name: "cache_key",   value: key)) }
+        if let key = dynamicKey { items.append(URLQueryItem(name: "dynamic_key", value: key)) }
+        if !items.isEmpty { components.queryItems = items }
         guard let url = components.url else { throw BDUIError.invalidURL }
         return url
     }

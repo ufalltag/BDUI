@@ -26,6 +26,13 @@ final class BDUIScreenViewController: UIViewController {
         presenter.viewDidLoad()
     }
 
+    // MARK: - Actions
+
+    @objc private func handleRefresh() {
+        scrollView.refreshControl?.endRefreshing()
+        presenter.forceRefresh()
+    }
+
     // MARK: - Layout
 
     private func setupLayout() {
@@ -34,6 +41,10 @@ final class BDUIScreenViewController: UIViewController {
         cacheBanner.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.hidesWhenStopped = true
+
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+        scrollView.refreshControl = refreshControl
 
         view.addSubviews(cacheBanner, scrollView, activityIndicator)
         scrollView.addSubview(contentView)

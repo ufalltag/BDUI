@@ -57,7 +57,8 @@ private let validScreenData = """
     },
     "dynamic": {}
   },
-  "cache_key": "abc123"
+  "cache_key": "abc123",
+  "dynamic_key": "dyn456"
 }
 """.data(using: .utf8)!
 
@@ -97,7 +98,7 @@ final class BDUIClientNetworkTests: XCTestCase {
             return (httpResponse(for: request, statusCode: 200), validScreenData)
         }
 
-        _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil)
+        _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil, dynamicKey: nil)
 
         let header = capturedRequest?.value(forHTTPHeaderField: "X-BDUI-Version")
         XCTAssertEqual(header, "\(BDUIProtocol.currentVersion)")
@@ -125,7 +126,7 @@ final class BDUIClientNetworkTests: XCTestCase {
             return (httpResponse(for: request, statusCode: 200), validScreenData)
         }
 
-        _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil)
+        _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil, dynamicKey: nil)
 
         XCTAssertNil(capturedURL?.query)
     }
@@ -137,8 +138,21 @@ final class BDUIClientNetworkTests: XCTestCase {
             return (httpResponse(for: request, statusCode: 200), validScreenData)
         }
 
-        _ = try await makeClient().fetch(screenId: "profile", cachedKey: "abc123")
+        _ = try await makeClient().fetch(screenId: "profile", cachedKey: "abc123", dynamicKey: nil)
 
+        XCTAssertTrue(capturedURL?.query?.contains("cache_key=abc123") == true)
+    }
+
+    func test_fetchWithDynamicKey_urlHasDynamicKeyQueryParam() async throws {
+        var capturedURL: URL?
+        MockURLProtocol.requestHandler = { request in
+            capturedURL = request.url
+            return (httpResponse(for: request, statusCode: 200), validScreenData)
+        }
+
+        _ = try await makeClient().fetch(screenId: "profile", cachedKey: "abc123", dynamicKey: "dyn456")
+
+        XCTAssertTrue(capturedURL?.query?.contains("dynamic_key=dyn456") == true)
         XCTAssertTrue(capturedURL?.query?.contains("cache_key=abc123") == true)
     }
 
@@ -149,7 +163,7 @@ final class BDUIClientNetworkTests: XCTestCase {
             return (httpResponse(for: request, statusCode: 200), validScreenData)
         }
 
-        _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil)
+        _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil, dynamicKey: nil)
 
         XCTAssertTrue(capturedURL?.path.contains("profile") == true)
     }
@@ -174,7 +188,7 @@ final class BDUIClientNetworkTests: XCTestCase {
         }
 
         do {
-            _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil)
+            _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil, dynamicKey: nil)
             XCTFail("Expected BDUIVersionError to be thrown")
         } catch let error as BDUIVersionError {
             XCTAssertEqual(error.error, "unsupported_protocol_version")
@@ -189,7 +203,7 @@ final class BDUIClientNetworkTests: XCTestCase {
         }
 
         do {
-            _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil)
+            _ = try await makeClient().fetch(screenId: "profile", cachedKey: nil, dynamicKey: nil)
             XCTFail("Expected BDUIError.serverError to be thrown")
         } catch BDUIError.serverError(let code) {
             XCTAssertEqual(code, 500)
@@ -203,7 +217,7 @@ final class BDUIClientNetworkTests: XCTestCase {
             return (httpResponse(for: request, statusCode: 200), validScreenData)
         }
 
-        let response = try await makeClient().fetch(screenId: "profile", cachedKey: nil)
+        let response = try await makeClient().fetch(screenId: "profile", cachedKey: nil, dynamicKey: nil)
 
         XCTAssertEqual(response.cacheKey, "abc123")
         XCTAssertEqual(response.protocolVersion, 1)

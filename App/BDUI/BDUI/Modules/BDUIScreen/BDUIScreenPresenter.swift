@@ -17,6 +17,7 @@ protocol BDUIScreenViewProtocol: AnyObject {
 
 protocol BDUIScreenPresenterProtocol: PresenterProtocol {
     func didTapRetry()
+    func forceRefresh()
 }
 
 // MARK: - Presenter implementation
@@ -58,13 +59,18 @@ final class BDUIScreenPresenter: BDUIScreenPresenterProtocol {
         loadScreen()
     }
 
+    /// Bypasses the local cache and fetches a fresh full response from the server.
+    func forceRefresh() {
+        loadScreen(forceRefresh: true)
+    }
+
     // MARK: - Private
 
-    private func loadScreen() {
+    private func loadScreen(forceRefresh: Bool = false) {
         view?.showLoading()
         Task {
             do {
-                let data = try await loader.load(screenId: screenId)
+                let data = try await loader.load(screenId: screenId, forceRefresh: forceRefresh)
                 await MainActor.run { [weak self] in self?.apply(data) }
             } catch {
                 await MainActor.run { [weak self] in

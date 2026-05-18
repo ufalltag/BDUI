@@ -6,6 +6,8 @@ pub enum RequestKind {
     CacheHit,
     /// Client sent a stale cache_key — full response returned.
     CacheMiss,
+    /// Client sent matching cache_key AND dynamic_key — nothing returned (keys only).
+    DynamicHit,
 }
 
 pub struct RequestEvent {
@@ -13,7 +15,7 @@ pub struct RequestEvent {
     pub kind: RequestKind,
     /// Bytes actually written to the wire.
     pub bytes_sent: usize,
-    /// Bytes saved vs. a naive full response (non-zero only for CacheHit).
+    /// Bytes saved vs. a naive full response (non-zero for CacheHit and DynamicHit).
     pub bytes_saved: usize,
     pub duration_ms: f64,
 }

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use crate::domain::{
-    models::{BduiCacheHitResponse, DynamicOnly},
+    hashing::compute_cache_key,
+    models::{BduiCacheHitResponse, BduiDynamicHitResponse, DynamicOnly},
     protocol,
     screen::ScreenRepository,
 };
@@ -24,8 +25,11 @@ pub enum ScreenError {
 
 // ── Service ───────────────────────────────────────────────────────────────────
 
-/// Encapsulates the cache-hit / cache-miss / first-request decision.
-/// Knows nothing about HTTP — takes IDs and keys, returns bytes.
+/// Encapsulates the four cache decision levels:
+///   First      → full response (no prior key)
+///   CacheMiss  → full response (stale cache_key)
+///   CacheHit   → dynamic only (cache_key matched, dynamic may have changed)
+///   DynamicHit → keys only    (both cache_key and dynamic_key matched)
 pub struct ScreenService {
     repository: Arc<dyn ScreenRepository>,
 }
@@ -39,30 +43,53 @@ impl ScreenService {
         &self,
         screen_id: &str,
         client_cache_key: Option<&str>,
+        client_dynamic_key: Option<&str>,
     ) -> Result<ScreenResult, ScreenError> {
         let screen = self.repository.find(screen_id).ok_or(ScreenError::NotFound)?;
 
-        let (bytes, kind, bytes_saved) = match client_cache_key {
-            Some(key) if key == screen.cache_key() => {
-                // ── Cache hit ─────────────────────────────────────────────────
+        let static_matched = client_cache_key
+            .map(|k| k == screen.cache_key())
+            .unwrap_or(false);
+
+        let (bytes, kind, bytes_saved) = if static_matched {
+            // Compute dynamic data and its key only when static already matched.
+            let dynamic = screen.dynamic_data();
+            let current_dynamic_key = compute_cache_key(&dynamic);
+
+            let dynamic_matched = client_dynamic_key
+                .map(|k| k == current_dynamic_key)
+                .unwrap_or(false);
+
+            if dynamic_matched {
+                // ── Level 3: Dynamic hit — nothing has changed ─────────────────
+                let response = BduiDynamicHitResponse {
+                    protocol_version: protocol::CURRENT,
+                    cache_key: screen.cache_key().to_owned(),
+                    dynamic_key: current_dynamic_key,
+                };
+                let bytes = serde_json::to_vec(&response).unwrap();
+                let saved = screen.full_response_size().saturating_sub(bytes.len());
+                (bytes, RequestKind::DynamicHit, saved)
+            } else {
+                // ── Level 2: Cache hit — static unchanged, return fresh dynamic ─
                 let response = BduiCacheHitResponse {
                     protocol_version: protocol::CURRENT,
-                    ui: DynamicOnly { dynamic: screen.dynamic_data() },
+                    dynamic_key: current_dynamic_key,
+                    ui: DynamicOnly { dynamic },
                 };
                 let bytes = serde_json::to_vec(&response).unwrap();
                 let saved = screen.full_response_size().saturating_sub(bytes.len());
                 (bytes, RequestKind::CacheHit, saved)
             }
-            Some(_) => {
-                // ── Cache miss (stale key) ────────────────────────────────────
-                let bytes = serde_json::to_vec(&screen.full_response()).unwrap();
-                (bytes, RequestKind::CacheMiss, 0)
-            }
-            None => {
-                // ── First request ─────────────────────────────────────────────
-                let bytes = serde_json::to_vec(&screen.full_response()).unwrap();
-                (bytes, RequestKind::First, 0)
-            }
+        } else {
+            // ── Level 1: Full response — first request or stale cache_key ──────
+            let bytes = serde_json::to_vec(&screen.full_response()).unwrap();
+            let kind = if client_cache_key.is_some() {
+                RequestKind::CacheMiss
+            } else {
+                RequestKind::First
+            };
+            (bytes, kind, 0)
         };
 
         Ok(ScreenResult { bytes, kind, bytes_saved })

@@ -91,23 +91,26 @@ public final class Component: Codable {
 }
 
 // MARK: - Server response
-// A single Decodable covers both server responses:
-//   Full:      { "ui": { "static": {...}, "dynamic": {...} }, "cache_key": "..." }
-//   Cache hit: { "ui": { "dynamic": {...} } }
+// A single Decodable covers all three server responses:
+//   Full:       { "ui": { "static": {...}, "dynamic": {...} }, "cache_key": "...", "dynamic_key": "..." }
+//   CacheHit:   { "ui": { "dynamic": {...} }, "dynamic_key": "..." }
+//   DynamicHit: { "cache_key": "...", "dynamic_key": "..." }  ← no "ui" at all
 
 public struct BDUIServerResponse: Decodable {
     public let protocolVersion: Int
-    public let ui: UIContent
-    public let cacheKey: String?   // nil → cache hit
+    public let ui: UIContent?       // nil → DynamicHit (nothing changed)
+    public let cacheKey: String?    // nil → CacheHit (static unchanged)
+    public let dynamicKey: String?  // present on CacheHit and DynamicHit
 
     enum CodingKeys: String, CodingKey {
         case protocolVersion = "protocol_version"
         case ui
-        case cacheKey        = "cache_key"
+        case cacheKey   = "cache_key"
+        case dynamicKey = "dynamic_key"
     }
 
     public struct UIContent: Decodable {
-        public let staticScreen: StaticScreen?   // nil → cache hit
+        public let staticScreen: StaticScreen?   // nil → CacheHit
         public let dynamic: JSONValue
 
         enum CodingKeys: String, CodingKey {
@@ -116,7 +119,8 @@ public struct BDUIServerResponse: Decodable {
         }
     }
 
-    public var isCacheHit: Bool { cacheKey == nil }
+    public var isCacheHit: Bool   { ui != nil && cacheKey == nil }
+    public var isDynamicHit: Bool { ui == nil }
 }
 
 // MARK: - ScreenData
@@ -126,4 +130,5 @@ public struct ScreenData {
     public let staticScreen: StaticScreen
     public let dynamic: JSONValue
     public let cacheKey: String
+    public let dynamicKey: String
 }

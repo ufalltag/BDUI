@@ -9,18 +9,21 @@ use event::{RequestEvent, RequestKind};
 
 #[derive(Default)]
 struct Inner {
-    first_count: u64,
-    hit_count:   u64,
-    miss_count:  u64,
+    first_count:       u64,
+    hit_count:         u64,
+    miss_count:        u64,
+    dynamic_hit_count: u64,
 
-    first_bytes: u64,
-    hit_bytes:   u64,
-    miss_bytes:  u64,
-    bytes_saved: u64,
+    first_bytes:       u64,
+    hit_bytes:         u64,
+    miss_bytes:        u64,
+    dynamic_hit_bytes: u64,
+    bytes_saved:       u64,
 
-    first_ms: f64,
-    hit_ms:   f64,
-    miss_ms:  f64,
+    first_ms:       f64,
+    hit_ms:         f64,
+    miss_ms:        f64,
+    dynamic_hit_ms: f64,
 
     per_screen: HashMap<String, ScreenStats>,
 }
@@ -33,6 +36,7 @@ pub struct ScreenStats {
     pub first_requests: u64,
     pub cache_hits:     u64,
     pub cache_misses:   u64,
+    pub dynamic_hits:   u64,
     pub bytes_sent:     u64,
     pub bytes_saved:    u64,
 }
@@ -55,6 +59,7 @@ pub struct MetricsSnapshot {
     pub first:                 TypeStats,
     pub cache_hit:             TypeStats,
     pub cache_miss:            TypeStats,
+    pub dynamic_hit:           TypeStats,
     pub per_screen:            HashMap<String, ScreenStats>,
 }
 
@@ -83,6 +88,10 @@ impl Metrics {
             RequestKind::CacheMiss => {
                 d.miss_count += 1; d.miss_bytes += bytes; d.miss_ms += ms;
             }
+            RequestKind::DynamicHit => {
+                d.dynamic_hit_count += 1; d.dynamic_hit_bytes += bytes; d.dynamic_hit_ms += ms;
+                d.bytes_saved += saved;
+            }
         }
 
         let screen = d.per_screen.entry(ev.screen_id).or_default();
@@ -90,22 +99,23 @@ impl Metrics {
         screen.bytes_sent  += bytes;
         screen.bytes_saved += saved;
         match ev.kind {
-            RequestKind::First     => screen.first_requests += 1,
-            RequestKind::CacheHit  => screen.cache_hits     += 1,
-            RequestKind::CacheMiss => screen.cache_misses   += 1,
+            RequestKind::First      => screen.first_requests += 1,
+            RequestKind::CacheHit   => screen.cache_hits     += 1,
+            RequestKind::CacheMiss  => screen.cache_misses   += 1,
+            RequestKind::DynamicHit => screen.dynamic_hits   += 1,
         }
     }
 
     pub fn snapshot(&self) -> MetricsSnapshot {
         let d = self.0.lock().unwrap();
 
-        let total       = d.first_count + d.hit_count + d.miss_count;
-        let total_bytes = d.first_bytes + d.hit_bytes + d.miss_bytes;
+        let total       = d.first_count + d.hit_count + d.miss_count + d.dynamic_hit_count;
+        let total_bytes = d.first_bytes + d.hit_bytes + d.miss_bytes + d.dynamic_hit_bytes;
         let would_have  = total_bytes + d.bytes_saved;
 
         MetricsSnapshot {
             total_requests:        total,
-            cache_hit_rate_pct:    pct(d.hit_count, total),
+            cache_hit_rate_pct:    pct(d.hit_count + d.dynamic_hit_count, total),
             total_bytes_sent:      total_bytes,
             total_bytes_saved:     d.bytes_saved,
             traffic_reduction_pct: pct(d.bytes_saved, would_have),
@@ -123,6 +133,11 @@ impl Metrics {
                 count: d.miss_count, total_bytes: d.miss_bytes,
                 avg_bytes: avg(d.miss_bytes, d.miss_count),
                 avg_ms:    avg_f(d.miss_ms, d.miss_count),
+            },
+            dynamic_hit: TypeStats {
+                count: d.dynamic_hit_count, total_bytes: d.dynamic_hit_bytes,
+                avg_bytes: avg(d.dynamic_hit_bytes, d.dynamic_hit_count),
+                avg_ms:    avg_f(d.dynamic_hit_ms, d.dynamic_hit_count),
             },
             per_screen: d.per_screen.clone(),
         }

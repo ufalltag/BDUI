@@ -9,6 +9,7 @@ pub struct BduiFullResponse {
     pub protocol_version: u8,
     pub ui: UiParts,
     pub cache_key: String,
+    pub dynamic_key: String,
 }
 
 #[derive(Serialize)]
@@ -18,17 +19,27 @@ pub struct UiParts {
     pub dynamic: Value,
 }
 
-// ── Cache-hit response (client key matched) ───────────────────────────────────
+// ── Cache-hit response (static matched, dynamic changed or unknown) ───────────
 
 #[derive(Serialize)]
 pub struct BduiCacheHitResponse {
     pub protocol_version: u8,
+    pub dynamic_key: String,
     pub ui: DynamicOnly,
 }
 
 #[derive(Serialize)]
 pub struct DynamicOnly {
     pub dynamic: Value,
+}
+
+// ── Dynamic-hit response (static AND dynamic matched — nothing to update) ─────
+
+#[derive(Serialize)]
+pub struct BduiDynamicHitResponse {
+    pub protocol_version: u8,
+    pub cache_key: String,
+    pub dynamic_key: String,
 }
 
 // ── Meta endpoint ─────────────────────────────────────────────────────────────
