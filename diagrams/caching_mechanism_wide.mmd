@@ -1,0 +1,27 @@
+%% Механизм умного кэширования BDUI — ШИРОКАЯ компоновка под слайд 16:9 (слева направо)
+%% Открыть: https://mermaid.live  ·  draw.io: Arrange → Insert → Advanced → Mermaid
+flowchart LR
+    REQ(["Запрос экрана<br/>screen_id (+ cache_key)"]) --> SPLIT["1 · Разделение<br/>static / dynamic"]
+    SPLIT --> CANON["2 · Канонизация static<br/>сортировка ключей,<br/>нормализация"]
+    CANON --> HASH["3 · SHA-256(static)<br/>→ cache_key"]
+    HASH --> Q{"4 · cache_key<br/>совпал?"}
+
+    Q -- "Нет / первый запрос" --> FULL["Ответ: cache_key +<br/>static + dynamic"]
+    Q -- "Да" --> DYN["Ответ: cache_key +<br/>только dynamic"]
+
+    FULL --> RENDER["📱 Клиент: обновить<br/>static + cache_key,<br/>отрисовать UI"]
+    DYN  --> RENDER2["📱 Клиент: static из кэша<br/>+ новый dynamic → UI"]
+
+    SAVE["💾 Экономия трафика:<br/>static не передаётся"]
+    DYN -.-> SAVE
+
+    classDef step fill:#FFF3E6,stroke:#E07B2E,stroke-width:1.5px,color:#222633;
+    classDef cli  fill:#E9EFFF,stroke:#2E5BFF,stroke-width:1.5px,color:#222633;
+    classDef good fill:#E7F6EC,stroke:#1B9E4B,stroke-width:1.5px,color:#173a26;
+    classDef dec  fill:#FFF8DB,stroke:#C9A227,stroke-width:2px,color:#222633;
+    class REQ cli;
+    class SPLIT,CANON,HASH,FULL step;
+    class DYN good;
+    class Q dec;
+    class RENDER,RENDER2 cli;
+    class SAVE good;

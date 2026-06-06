@@ -10,7 +10,7 @@ final class ContainerComponentView: UIView, BDUIComponentView {
     init(component: Component, renderer: BDUIRenderer) {
         self.componentId = component.id
         super.init(frame: .zero)
-        setupLayout(direction: directionFrom(props: component.props), spacing: spacingFrom(props: component.props))
+        setupLayout(component: component)
         buildChildren(component.children ?? [], renderer: renderer)
     }
 
@@ -27,42 +27,38 @@ final class ContainerComponentView: UIView, BDUIComponentView {
         childViews[id]
     }
 
-    private func setupLayout(direction: NSLayoutConstraint.Axis, spacing: CGFloat) {
+    private func setupLayout(component: Component) {
         translatesAutoresizingMaskIntoConstraints = false
-        stack.axis = direction
-        stack.spacing = spacing
-        stack.alignment = .fill
-        stack.distribution = .fill
+        stack.axis = directionFrom(component: component)
+        stack.spacing = spacingFrom(props: component.props)
+        switch component.kind {
+        case "stats_row":
+            stack.alignment = .fill
+            stack.distribution = .fillEqually
+        default:
+            stack.alignment = .fill
+            stack.distribution = .fill
+        }
         addSubview(stack)
         stack.pinToEdges(of: self)
     }
 
     private func buildChildren(_ children: [Component], renderer: BDUIRenderer) {
         for child in children {
-            let view = makeView(for: child, renderer: renderer)
+            let view = renderer.makeView(for: child)
             stack.addArrangedSubview(view)
             childViews[child.id] = view
+            renderer.wireActions(view, for: child)
             renderer.registerView(view)
         }
     }
 
-    private func makeView(for component: Component, renderer: BDUIRenderer) -> any BDUIComponentView {
-        switch component.kind {
-        case "header":    return HeaderComponentView(component: component)
-        case "text":      return TextComponentView(component: component)
-        case "avatar":    return AvatarComponentView(component: component)
-        case "button":    return ButtonComponentView(component: component)
-        case "stat_item": return StatItemComponentView(component: component)
-        case "container": return ContainerComponentView(component: component, renderer: renderer)
-        default:          return FallbackComponentView(component: component)
-        }
-    }
-
-    private func directionFrom(props: JSONValue?) -> NSLayoutConstraint.Axis {
-        guard case .object(let map) = props,
-              case .string(let dir) = map["direction"],
-              dir == "horizontal" else { return .vertical }
-        return .horizontal
+    private func directionFrom(component: Component) -> NSLayoutConstraint.Axis {
+        if case .object(let map) = component.props,
+           case .string(let dir) = map["direction"],
+           dir == "horizontal" { return .horizontal }
+        let horizontalKinds: Set<String> = ["stats_row", "action_bar", "rating_row", "price_row"]
+        return horizontalKinds.contains(component.kind) ? .horizontal : .vertical
     }
 
     private func spacingFrom(props: JSONValue?) -> CGFloat {

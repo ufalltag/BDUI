@@ -22,6 +22,7 @@ final class BDUIScreenViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        renderer.actionDispatcher = self
         setupLayout()
         presenter.viewDidLoad()
     }
@@ -104,6 +105,25 @@ extension BDUIScreenViewController: BDUIScreenViewProtocol {
 
     func updateCacheStatus(isHit: Bool, cacheKey: String) {
         cacheBanner.update(isHit: isHit, cacheKey: cacheKey)
+    }
+
+    func showMessage(_ message: String) {
+        let alert = UIAlertController(title: message, message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+}
+
+// MARK: - BDUIActionDispatching
+
+extension BDUIScreenViewController: BDUIActionDispatching {
+    func dispatch(_ action: BDUIAction, from componentId: String) {
+        // Search is a view-layer concern (local filtering) — keep it in the renderer.
+        if action.type == "search" {
+            renderer.applyFilter(target: action.string("target"), query: action.string("query") ?? "")
+            return
+        }
+        presenter.handle(action: action, from: componentId)
     }
 }
 

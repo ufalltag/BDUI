@@ -40,7 +40,7 @@
     {
       "type": "photo_grid",
       "id": "posts_grid",
-      "props": { "columns": 3, "spacing": 2, "aspect_ratio": "1:1" }
+      "props": { "columns": 1, "spacing": 2, "aspect_ratio": "1:1" }
     }
   ]
 }

@@ -1,0 +1,46 @@
+flowchart TB
+    Client(["HTTP-запрос<br/>GET /bdui/screen/{id}<br/>cache_key? dynamic_key?"])
+
+    subgraph SRV["Слой представления — server"]
+        H["HTTP-обработчик<br/>handlers/screen.rs"]
+        ST["AppState · metrics"]
+        ER["Обработка ошибок<br/>error.rs"]
+    end
+
+    subgraph APP["Слой приложения — application"]
+        SS["ScreenService<br/>handle_with()"]
+    end
+
+    subgraph DOM["Доменный слой — domain"]
+        RP["ScreenRepository<br/>(trait)"]
+        MD["Модели ответа<br/>static · dynamic · ключи"]
+        HASH["hashing<br/>канонизация + SHA-256"]
+        PROTO["protocol<br/>версия"]
+    end
+
+    subgraph INF["Инфраструктурный слой — infrastructure"]
+        SCR["Экраны: profile, home,<br/>catalog, product, settings"]
+        REG["register_all()"]
+        JSON["JSON-данные экранов"]
+    end
+
+    Client --> H
+    H --> SS
+    H --> ER
+    SS --> RP
+    SS --> HASH
+    SS --> MD
+    SS --> PROTO
+    RP -. реализует .-> SCR
+    REG --> SCR
+    SCR --> JSON
+    H --> Resp(["JSON-ответ<br/>+ cache_key, dynamic_key"])
+
+    classDef srv fill:#eaf1fc,stroke:#0a66d6;
+    classDef app fill:#e9f7ee,stroke:#1fa94c;
+    classDef dom fill:#fdeee3,stroke:#e8590c;
+    classDef inf fill:#f5f5f7,stroke:#86868b;
+    class H,ST,ER srv
+    class SS app
+    class RP,MD,HASH,PROTO dom
+    class SCR,REG,JSON inf

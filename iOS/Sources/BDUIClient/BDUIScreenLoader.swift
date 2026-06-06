@@ -3,13 +3,18 @@ import Foundation
 // MARK: - Protocol (for testability)
 
 public protocol BDUIScreenLoaderProtocol {
-    func load(screenId: String, forceRefresh: Bool) async throws -> ScreenData
+    func load(screenId: String, forceRefresh: Bool, category: String?) async throws -> ScreenData
 }
 
 extension BDUIScreenLoaderProtocol {
-    /// Convenience: loads without forcing refresh.
+    /// Convenience: loads without forcing refresh and without a variant.
     public func load(screenId: String) async throws -> ScreenData {
-        try await load(screenId: screenId, forceRefresh: false)
+        try await load(screenId: screenId, forceRefresh: false, category: nil)
+    }
+
+    /// Convenience: loads with an explicit refresh flag, default variant.
+    public func load(screenId: String, forceRefresh: Bool) async throws -> ScreenData {
+        try await load(screenId: screenId, forceRefresh: forceRefresh, category: nil)
     }
 }
 
@@ -38,32 +43,35 @@ public final class BDUIScreenLoader: BDUIScreenLoaderProtocol {
         self.maxCacheAge = maxCacheAge
     }
 
-    public func load(screenId: String, forceRefresh: Bool = false) async throws -> ScreenData {
+    public func load(screenId: String, forceRefresh: Bool = false, category: String? = nil) async throws -> ScreenData {
         if forceRefresh || cache.isExpired(for: screenId, maxAge: maxCacheAge) {
             cache.invalidate(for: screenId)
         }
 
         let storedKey    = cache.cachedKey(for: screenId)
         let storedDynKey = cache.cachedDynamicKey(for: screenId)
-        let response     = try await client.fetch(screenId: screenId, cachedKey: storedKey, dynamicKey: storedDynKey)
+        let response     = try await client.fetch(screenId: screenId, cachedKey: storedKey, dynamicKey: storedDynKey, category: category)
 
         if response.isDynamicHit {
             return try await handleDynamicHit(screenId: screenId, storedKey: storedKey, dynamicKey: response.dynamicKey)
         } else if response.isCacheHit {
             return try await handleCacheHit(response: response, screenId: screenId, storedKey: storedKey)
         } else {
-            return handleFullResponse(response: response, screenId: screenId)
+            return try handleFullResponse(response: response, screenId: screenId)
         }
     }
 
     // MARK: - Private
 
-    private func handleFullResponse(response: BDUIServerResponse, screenId: String) -> ScreenData {
+    private func handleFullResponse(response: BDUIServerResponse, screenId: String) throws -> ScreenData {
         guard let ui         = response.ui,
               let static_    = ui.staticScreen,
               let cacheKey   = response.cacheKey,
               let dynamicKey = response.dynamicKey else {
-            preconditionFailure("Full response missing required fields for screen '\(screenId)'")
+            throw BDUIError.decodingFailed(
+                NSError(domain: "BDUIScreenLoader", code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "Full response missing required fields for screen '\(screenId)'"])
+            )
         }
         cache.update(cacheKey: cacheKey, staticScreen: static_, for: screenId, dynamicKey: dynamicKey, dynamic: ui.dynamic)
         return ScreenData(staticScreen: static_, dynamic: ui.dynamic, cacheKey: cacheKey, dynamicKey: dynamicKey)

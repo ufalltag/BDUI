@@ -11,6 +11,8 @@ use crate::domain::{models::BduiVersionError, protocol};
 pub enum AppError {
     ScreenNotFound,
     UnsupportedVersion { client_version: u8 },
+    /// `X-BDUI-Version` header is present but not a valid u8 integer.
+    MalformedVersionHeader,
 }
 
 impl From<ScreenError> for AppError {
@@ -37,6 +39,12 @@ impl IntoResponse for AppError {
                     client_version,
                     supported_versions: protocol::SUPPORTED.to_vec(),
                 }),
+            )
+                .into_response(),
+
+            Self::MalformedVersionHeader => (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({ "error": "malformed_version_header" })),
             )
                 .into_response(),
         }

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		53712BEB2FD42ED10014244C /* BDUIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 53712BEA2FD42ED10014244C /* BDUIClient */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		53E32F1B2FBA5147001C5BB5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53712BEB2FD42ED10014244C /* BDUIClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = BDUI;
 			packageProductDependencies = (
+				53712BEA2FD42ED10014244C /* BDUIClient */,
 			);
 			productName = BDUI;
 			productReference = 53E32F042FBA5145001C5BB5 /* BDUI.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 53E32EFB2FBA5145001C5BB5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				53712BE92FD42ED10014244C /* XCLocalSwiftPackageReference "../../iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 53E32F052FBA5145001C5BB5 /* Products */;
 			projectDirPath = "";
@@ -294,7 +303,6 @@
 				INFOPLIST_FILE = BDUI/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -326,7 +334,6 @@
 				INFOPLIST_FILE = BDUI/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -591,6 +598,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		53712BE92FD42ED10014244C /* XCLocalSwiftPackageReference "../../iOS" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../iOS;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		53712BEA2FD42ED10014244C /* BDUIClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BDUIClient;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 53E32EFC2FBA5145001C5BB5 /* Project object */;
 }

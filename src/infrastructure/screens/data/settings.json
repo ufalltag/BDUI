@@ -28,7 +28,7 @@
       "id": "notifications_section",
       "props": { "title": "Notifications" },
       "children": [
-        { "type": "settings_toggle", "id": "toggle_push",  "props": { "icon": "bell",     "label": "Push Notifications"  } },
+        { "type": "settings_toggle", "id": "toggle_push",  "props": { "icon": "bell",     "label": "Push Notifications", "enabled": true } },
         { "type": "settings_toggle", "id": "toggle_email", "props": { "icon": "envelope", "label": "Email Notifications" } },
         { "type": "settings_toggle", "id": "toggle_sms",   "props": { "icon": "message",  "label": "SMS Notifications"   } }
       ]
@@ -55,7 +55,7 @@
     {
       "type": "button",
       "id": "logout_btn",
-      "props": { "style": "destructive", "action": "logout" }
+      "props": { "style": "outline", "action": "logout" }
     }
   ]
 }

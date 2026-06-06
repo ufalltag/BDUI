@@ -1,0 +1,17 @@
+{
+  "filters": [
+    { "id": "all",         "label": "All",         "selected": false },
+    { "id": "electronics", "label": "Electronics", "selected": false },
+    { "id": "clothing",    "label": "Clothing",    "selected": true  },
+    { "id": "books",       "label": "Books",       "selected": false },
+    { "id": "sports",      "label": "Sports",      "selected": false }
+  ],
+  "products": [
+    { "id": "cl_1", "name": "Merino Wool Sweater",   "price": "$79.00",  "rating": 4.5, "reviews": 540,  "badge": null,   "in_cart": false },
+    { "id": "cl_2", "name": "Slim Fit Denim Jeans",  "price": "$59.00",  "rating": 4.3, "reviews": 1230, "badge": "Sale", "in_cart": false },
+    { "id": "cl_3", "name": "Waterproof Rain Jacket","price": "$129.00", "rating": 4.7, "reviews": 410,  "badge": "New",  "in_cart": false },
+    { "id": "cl_4", "name": "Classic Cotton T-Shirt","price": "$24.00",  "rating": 4.2, "reviews": 3050, "badge": null,   "in_cart": false }
+  ],
+  "total_count": 212,
+  "current_page": 1
+}

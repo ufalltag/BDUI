@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RequestKind {
     /// First-ever request for this screen — no cache_key sent.
     First,

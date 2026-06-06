@@ -38,7 +38,7 @@ public indirect enum JSONValue: Codable, Equatable {
 
 // MARK: - Static screen models (mirrors server's ui.StaticScreen)
 
-public struct StaticScreen: Codable {
+public struct StaticScreen: Codable, Equatable {
     public let screenId: String
     public let layout: String
     public let navigation: NavigationConfig
@@ -65,7 +65,13 @@ public struct NavigationConfig: Codable, Equatable {
 }
 
 // Component is a class — structs can't directly hold optional instances of themselves.
-public final class Component: Codable {
+public final class Component: Codable, Equatable {
+    public static func == (lhs: Component, rhs: Component) -> Bool {
+        lhs.kind == rhs.kind && lhs.id == rhs.id &&
+        lhs.props == rhs.props && lhs.style == rhs.style &&
+        lhs.children == rhs.children && lhs.itemTemplate == rhs.itemTemplate
+    }
+
     public let kind: String          // "type" in JSON — keyword in Swift
     public let id: String
     public let props: JSONValue?
@@ -126,7 +132,7 @@ public struct BDUIServerResponse: Decodable {
 // MARK: - ScreenData
 // What the app actually renders: resolved static structure + current dynamic data.
 
-public struct ScreenData {
+public struct ScreenData: Equatable {
     public let staticScreen: StaticScreen
     public let dynamic: JSONValue
     public let cacheKey: String

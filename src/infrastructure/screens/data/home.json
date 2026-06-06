@@ -2,8 +2,7 @@
   "screen_id": "home",
   "layout": "HomeScreenLayout",
   "navigation": {
-    "tab_bar": true,
-    "tab_index": 0,
+    "tab_bar": false,
     "back_button": false,
     "title": "Home"
   },
@@ -32,18 +31,6 @@
           { "type": "text",        "id": "card_likes",   "style": { "font": "footnote", "weight": "semibold" } },
           { "type": "text",        "id": "card_caption", "style": { "font": "body", "lines": 2 } },
           { "type": "text",        "id": "card_time",    "style": { "font": "caption", "color": "secondary" } }
-        ]
-      }
-    },
-    {
-      "type": "bottom_tab_bar",
-      "id": "tab_bar",
-      "props": {
-        "tabs": [
-          { "id": "home",    "icon": "house",  "action": "nav_home"    },
-          { "id": "search",  "icon": "search", "action": "nav_search"  },
-          { "id": "create",  "icon": "plus",   "action": "nav_create"  },
-          { "id": "profile", "icon": "person", "action": "nav_profile" }
         ]
       }
     }

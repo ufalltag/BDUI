@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
-use serde_json::{json, Value};
+use serde_json::Value;
 use crate::domain::{screen::Screen, ui::StaticScreen};
-use super::parse_static;
+use super::{parse_static, read_dynamic};
 
 static STATIC: LazyLock<(StaticScreen, String)> =
     LazyLock::new(|| parse_static(include_str!("data/settings.json"), "settings.json"));
@@ -18,14 +18,6 @@ impl Screen for SettingsScreen {
     fn full_response_size(&self) -> usize { *FULL_SIZE }
 
     fn dynamic_data(&self) -> Value {
-        json!({
-            "row_edit_profile": { "subtitle": "Tagir Fayrushin" },
-            "row_change_email": { "subtitle": "t****@gmail.com" },
-            "row_change_phone": { "subtitle": "+7 *** *** 42"   },
-            "toggle_push":      { "enabled": true  },
-            "toggle_email":     { "enabled": false },
-            "toggle_sms":       { "enabled": false },
-            "toggle_private":   { "enabled": false }
-        })
+        read_dynamic("settings_dynamic.json")
     }
 }

@@ -20,6 +20,7 @@ final class StatItemComponentView: UIView, BDUIComponentView {
         guard case .object(let props) = dynamic else { return }
         if case .string(let value) = props["value"] { valueLabel.text = value }
         if case .string(let title) = props["title"] { titleLabel.text = title }
+        if case .string(let label) = props["label"] { titleLabel.text = label }
     }
 
     private func setupLayout() {

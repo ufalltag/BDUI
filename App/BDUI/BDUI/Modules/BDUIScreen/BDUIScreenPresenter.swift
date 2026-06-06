@@ -11,6 +11,7 @@ protocol BDUIScreenViewProtocol: AnyObject {
     func buildLayout(from screen: StaticScreen)
     func applyDynamic(_ dynamic: JSONValue)
     func updateCacheStatus(isHit: Bool, cacheKey: String)
+    func showMessage(_ message: String)
 }
 
 // MARK: - Presenter contract
@@ -18,6 +19,7 @@ protocol BDUIScreenViewProtocol: AnyObject {
 protocol BDUIScreenPresenterProtocol: PresenterProtocol {
     func didTapRetry()
     func forceRefresh()
+    func handle(action: BDUIAction, from componentId: String)
 }
 
 // MARK: - Presenter implementation
@@ -64,13 +66,37 @@ final class BDUIScreenPresenter: BDUIScreenPresenterProtocol {
         loadScreen(forceRefresh: true)
     }
 
+    /// Routes an action fired by a component view.
+    /// Selection (filter/sort/tab) is handled locally by the views themselves,
+    /// so here it's just acknowledged — no server round-trip in this mode.
+    func handle(action: BDUIAction, from componentId: String) {
+        switch action.type {
+        case "navigate":
+            if let screen = action.string("screen") {
+                router?.showScreen(screenId: screen)
+            }
+        case "refresh":
+            forceRefresh()
+        case "reload":
+            // Re-fetch the same screen for a different content variant (e.g. a
+            // catalog category). Static layout is unchanged, so only the dynamic
+            // part is reloaded — server returns a CacheHit with the new data.
+            loadScreen(category: action.string("category"))
+        case "select":
+            // Local-only: visual selection already applied by the component.
+            break
+        default:
+            view?.showMessage(action.displayName)
+        }
+    }
+
     // MARK: - Private
 
-    private func loadScreen(forceRefresh: Bool = false) {
+    private func loadScreen(forceRefresh: Bool = false, category: String? = nil) {
         view?.showLoading()
         Task {
             do {
-                let data = try await loader.load(screenId: screenId, forceRefresh: forceRefresh)
+                let data = try await loader.load(screenId: screenId, forceRefresh: forceRefresh, category: category)
                 await MainActor.run { [weak self] in self?.apply(data) }
             } catch {
                 await MainActor.run { [weak self] in

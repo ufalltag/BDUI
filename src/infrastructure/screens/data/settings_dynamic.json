@@ -1,0 +1,9 @@
+{
+  "row_edit_profile": { "subtitle": "Tagir Fayrushin" },
+  "row_change_email": { "subtitle": "t****@gmail.com" },
+  "row_change_phone": { "subtitle": "+7 *** *** 42"   },
+  "toggle_push":      { "enabled": true  },
+  "toggle_email":     { "enabled": false },
+  "toggle_sms":       { "enabled": false },
+  "toggle_private":   { "enabled": false }
+}

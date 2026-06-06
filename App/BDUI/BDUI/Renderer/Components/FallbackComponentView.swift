@@ -7,7 +7,7 @@ final class FallbackComponentView: UIView, BDUIComponentView {
     init(component: Component) {
         self.componentId = component.id
         super.init(frame: .zero)
-        setup(type: component.type)
+        setup(type: component.kind)
     }
 
     required init?(coder: NSCoder) { fatalError() }

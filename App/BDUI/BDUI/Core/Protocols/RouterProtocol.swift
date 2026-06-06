@@ -27,4 +27,6 @@ protocol DemoListRouterProtocol: AnyObject {
 /// Navigation contract visible to the BDUIScreen module.
 protocol BDUIScreenRouterProtocol: AnyObject {
     func pop()
+    /// Pushes another BDUI screen — used by `navigate` actions.
+    func showScreen(screenId: String)
 }

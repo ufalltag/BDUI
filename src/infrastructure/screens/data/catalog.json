@@ -16,7 +16,7 @@
     {
       "type": "filter_chips",
       "id": "filters",
-      "props": { "scroll": "horizontal", "multi_select": false }
+      "props": { "scroll": "horizontal", "multi_select": false, "action": { "type": "reload" } }
     },
     {
       "type": "sort_bar",

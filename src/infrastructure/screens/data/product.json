@@ -44,7 +44,7 @@
     {
       "type": "variant_picker",
       "id": "color_picker",
-      "props": { "label": "Color", "style": "swatch" }
+      "props": { "label": "Color", "style": "swatch", "action": { "type": "reload" } }
     },
     {
       "type": "quantity_stepper",
@@ -54,7 +54,7 @@
     {
       "type": "expandable_section",
       "id": "description",
-      "props": { "title": "Description", "initially_expanded": true },
+      "props": { "title": "Description", "initially_expanded": false },
       "children": [
         { "type": "text", "id": "desc_text", "style": { "font": "body" } }
       ]
@@ -71,7 +71,7 @@
       "type": "sticky_footer",
       "id": "cta",
       "children": [
-        { "type": "button", "id": "add_to_cart_btn", "props": { "style": "primary",   "action": "add_to_cart", "full_width": true } },
+        { "type": "button", "id": "add_to_cart_btn", "props": { "style": "outline",   "action": "add_to_cart", "full_width": true } },
         { "type": "button", "id": "buy_now_btn",     "props": { "style": "secondary", "action": "buy_now",     "full_width": true } }
       ]
     }

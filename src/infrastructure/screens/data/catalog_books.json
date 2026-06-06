@@ -1,0 +1,17 @@
+{
+  "filters": [
+    { "id": "all",         "label": "All",         "selected": false },
+    { "id": "electronics", "label": "Electronics", "selected": false },
+    { "id": "clothing",    "label": "Clothing",    "selected": false },
+    { "id": "books",       "label": "Books",       "selected": true  },
+    { "id": "sports",      "label": "Sports",      "selected": false }
+  ],
+  "products": [
+    { "id": "bk_1", "name": "The Rust Programming Language", "price": "$39.00", "rating": 4.9, "reviews": 2870, "badge": "Best Seller", "in_cart": false },
+    { "id": "bk_2", "name": "Clean Architecture",            "price": "$34.00", "rating": 4.6, "reviews": 1540, "badge": null,          "in_cart": false },
+    { "id": "bk_3", "name": "Designing Data-Intensive Apps", "price": "$45.00", "rating": 4.8, "reviews": 3320, "badge": "Top Rated",   "in_cart": false },
+    { "id": "bk_4", "name": "Atomic Habits",                 "price": "$19.00", "rating": 4.7, "reviews": 9810, "badge": null,          "in_cart": false }
+  ],
+  "total_count": 530,
+  "current_page": 1
+}

@@ -1,0 +1,44 @@
+%% Архитектура программного решения — BDUI с умным кэшированием (блочная компоновка)
+%% Открыть: https://mermaid.live  ·  draw.io: Arrange → Insert → Advanced → Mermaid
+flowchart TB
+    subgraph CLIENT["📱 iOS-клиент"]
+        direction TB
+        UI["UI-рендерер"]
+        STORE["Кэш: static + cache_key"]
+        NET1["Сетевой слой"]
+        UI --- STORE
+        STORE --- NET1
+    end
+
+    subgraph SERVER["🦀 Сервер на Rust"]
+        direction TB
+        API["REST API<br/>/screen/{id} · /update"]
+        subgraph PIPE["Конвейер умного кэширования"]
+            direction LR
+            SPLIT["Разделение<br/>static / dynamic"]
+            CANON["Канонизация<br/>JSON"]
+            HASH["SHA-256<br/>→ cache_key"]
+            CACHECHK["Проверка<br/>cache_key"]
+            SPLIT --- CANON
+            HASH --- CACHECHK
+            SPLIT --- HASH
+            CANON --- CACHECHK
+        end
+        API --- PIPE
+    end
+
+    DB[("Описания<br/>экранов")]
+
+    NET1 == "screen_id + cache_key" ==> API
+    API == "cache_key + static? + dynamic" ==> NET1
+    PIPE -. "читает" .-> DB
+
+    classDef client fill:#E9EFFF,stroke:#2E5BFF,stroke-width:2px,color:#222633;
+    classDef server fill:#FFF3E6,stroke:#E07B2E,stroke-width:2px,color:#222633;
+    classDef data fill:#F0F0F0,stroke:#6B7080,stroke-width:1.5px,color:#222633;
+    class UI,STORE,NET1 client;
+    class API,SPLIT,CANON,HASH,CACHECHK server;
+    class DB data;
+    style CLIENT fill:#F5F8FF,stroke:#2E5BFF,stroke-width:2px
+    style SERVER fill:#FFF9F2,stroke:#E07B2E,stroke-width:2px
+    style PIPE fill:#FFFFFF,stroke:#E07B2E,stroke-dasharray:4 3

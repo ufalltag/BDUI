@@ -1,0 +1,26 @@
+{
+  "stories": [
+    { "id": "s1", "user": "alice", "avatar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s", "seen": false },
+    { "id": "s2", "user": "bob",   "avatar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s", "seen": true  },
+    { "id": "s3", "user": "carol", "avatar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s", "seen": false },
+    { "id": "s4", "user": "dan",   "avatar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s", "seen": false }
+  ],
+  "feed": [
+    {
+      "id": "f1",
+      "author": "alice", "author_avatar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s",
+      "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s",
+      "likes": 1204, "liked": false, "bookmarked": false,
+      "caption": "Beautiful sunset at the mountains!",
+      "created_at": "2026-05-17T08:00:00Z"
+    },
+    {
+      "id": "f2",
+      "author": "bob", "author_avatar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s",
+      "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSb7L78HOExQpJYjH7auIODtFmhsugJR2bIKQ&s",
+      "likes": 857, "liked": true, "bookmarked": true,
+      "caption": "My new Rust project is coming along nicely",
+      "created_at": "2026-05-17T06:30:00Z"
+    }
+  ]
+}

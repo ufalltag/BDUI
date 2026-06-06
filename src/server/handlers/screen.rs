@@ -13,6 +13,9 @@ use crate::server::{error::AppError, state::AppState};
 pub struct ScreenParams {
     cache_key: Option<String>,
     dynamic_key: Option<String>,
+    /// Optional content variant (e.g. catalog category). Selects a different
+    /// dynamic data set for the same static layout.
+    category: Option<String>,
 }
 
 pub async fn handle(
@@ -26,10 +29,11 @@ pub async fn handle(
     let start = Instant::now();
     let result = state
         .screen_service
-        .handle(
+        .handle_with(
             &screen_id,
             params.cache_key.as_deref(),
             params.dynamic_key.as_deref(),
+            params.category.as_deref(),
         )
         .map_err(AppError::from)?;
 
@@ -48,7 +52,7 @@ pub async fn handle(
         kind   = ?event.kind,
         sent   = event.bytes_sent,
         saved  = event.bytes_saved,
-        ms     = format!("{:.3}", event.duration_ms),
+        ms     = event.duration_ms,
     );
 
     state.metrics.record(event);
@@ -73,7 +77,7 @@ fn validate_version(headers: &HeaderMap) -> Result<(), AppError> {
         .to_str()
         .ok()
         .and_then(|s| s.parse().ok())
-        .unwrap_or(0);
+        .ok_or(AppError::MalformedVersionHeader)?;
 
     if protocol::SUPPORTED.contains(&version) {
         Ok(())

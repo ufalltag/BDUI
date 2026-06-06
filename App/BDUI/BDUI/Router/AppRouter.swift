@@ -48,4 +48,13 @@ extension AppRouter: BDUIScreenRouterProtocol {
     func pop() {
         navigationController.popViewController(animated: true)
     }
+
+    func showScreen(screenId: String) {
+        let vc = BDUIScreenAssembly.assemble(
+            screenId: screenId,
+            loader: screenLoader,
+            router: self
+        )
+        push(vc)
+    }
 }

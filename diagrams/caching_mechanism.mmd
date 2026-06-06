@@ -1,0 +1,29 @@
+%% Механизм умного кэширования BDUI — sequence, увеличенное расстояние между линиями
+%% actorMargin — расстояние между вертикальными линиями (увеличь/уменьши под себя)
+%% Открыть: https://mermaid.live  ·  draw.io: Arrange → Insert → Advanced → Mermaid
+%%{init: {"sequence": {"actorMargin": 220, "width": 170, "boxMargin": 12, "messageMargin": 45, "mirrorActors": false}}}%%
+sequenceDiagram
+    autonumber
+    participant C as 📱 iOS-клиент
+    participant S as 🦀 Сервер (Rust)
+    participant D as Источник данных
+    Note over C,S: Первый запрос экрана (кэша ещё нет)
+    C->>S: GET /screen/{id}  (без cache_key)
+    S->>D: получить описание экрана (BDUI JSON)
+    D-->>S: полный BDUI
+    S->>S: 1) разделить на static / dynamic
+    S->>S: 2) канонизация static (сортировка ключей, нормализация)
+    S->>S: 3) SHA-256(static) → cache_key
+    S-->>C: { cache_key, static, dynamic }
+    C->>C: сохранить static + cache_key, отрисовать UI
+    Note over C,S: Повторный запрос (клиент знает cache_key)
+    C->>S: GET /screen/{id}  +  cache_key
+    S->>S: 4) сравнить cache_key с актуальным хэшем
+    alt cache_key совпал — структура не изменилась
+        S-->>C: { cache_key, dynamic }
+        Note right of S: static НЕ передаётся → экономия трафика
+        C->>C: взять static из кэша + новый dynamic → UI
+    else cache_key не совпал — структура изменилась
+        S-->>C: { new_cache_key, static, dynamic }
+        C->>C: обновить static + cache_key в кэше → UI
+    end

@@ -1,0 +1,17 @@
+{
+  "filters": [
+    { "id": "all",         "label": "All",         "selected": false },
+    { "id": "electronics", "label": "Electronics", "selected": true  },
+    { "id": "clothing",    "label": "Clothing",    "selected": false },
+    { "id": "books",       "label": "Books",       "selected": false },
+    { "id": "sports",      "label": "Sports",      "selected": false }
+  ],
+  "products": [
+    { "id": "el_1", "name": "4K OLED Smart TV 55\"",   "price": "$899.00", "rating": 4.8, "reviews": 3120, "badge": "Hot",        "in_cart": false },
+    { "id": "el_2", "name": "Noise-Cancelling Earbuds", "price": "$199.00", "rating": 4.6, "reviews": 1890, "badge": null,         "in_cart": false },
+    { "id": "el_3", "name": "Gaming Laptop RTX 4070",   "price": "$1499.00","rating": 4.9, "reviews": 642,  "badge": "Best Seller","in_cart": false },
+    { "id": "el_4", "name": "Smartwatch Series 9",      "price": "$429.00", "rating": 4.7, "reviews": 2210, "badge": "New",        "in_cart": false }
+  ],
+  "total_count": 64,
+  "current_page": 1
+}

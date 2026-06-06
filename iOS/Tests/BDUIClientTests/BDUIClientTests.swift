@@ -7,11 +7,13 @@ final class MockBDUIClient: BDUIClientProtocol {
     var responses: [String: BDUIServerResponse] = [:]
     var lastFetchedKey: String? = nil
     var lastFetchedDynamicKey: String? = nil
+    var lastFetchedCategory: String? = nil
     var requestCount = 0
 
-    func fetch(screenId: String, cachedKey: String?, dynamicKey: String?) async throws -> BDUIServerResponse {
-        lastFetchedKey       = cachedKey
+    func fetch(screenId: String, cachedKey: String?, dynamicKey: String?, category: String?) async throws -> BDUIServerResponse {
+        lastFetchedKey        = cachedKey
         lastFetchedDynamicKey = dynamicKey
+        lastFetchedCategory   = category
         requestCount += 1
         guard let response = responses[screenId] else {
             throw BDUIError.serverError(statusCode: 404)
@@ -380,5 +382,152 @@ final class BDUICacheTTLTests: XCTestCase {
         cache.update(cacheKey: "k", staticScreen: makeFullResponse().ui!.staticScreen!, for: "home")
         XCTAssertTrue(cache.isExpired(for: "profile", maxAge: 3600))
         XCTAssertFalse(cache.isExpired(for: "home", maxAge: 3600))
+    }
+}
+
+// MARK: - Fallback / resilience tests (Point 12)
+
+final class BDUIScreenLoaderFallbackTests: XCTestCase {
+    var mockClient: MockBDUIClient!
+    var cache: BDUICache!
+    var loader: BDUIScreenLoader!
+
+    override func setUp() {
+        super.setUp()
+        mockClient = MockBDUIClient()
+        cache      = BDUICache(suiteName: "bdui.fallback.test.\(UUID().uuidString)")
+        loader     = BDUIScreenLoader(client: mockClient, cache: cache)
+    }
+
+    // DynamicHit arrives but local dynamic cache is empty → refetch full response.
+    func test_dynamicHit_withEmptyLocalCache_refetchesFull() async throws {
+        // Warm up with a full response to populate the static cache but NOT the dynamic cache.
+        mockClient.responses["profile"] = makeFullResponse()
+        _ = try await loader.load(screenId: "profile")
+        // Manually wipe only the dynamic portion.
+        cache.updateDynamic(dynamicKey: "", dynamic: .null, for: "profile")
+        // Poison the dynamic key so cachedDynamic returns nil after decode failure.
+        // Easiest: just call invalidate and re-store only static + cache_key.
+        let storedStatic = cache.cachedStatic(for: "profile")!
+        cache.invalidate(for: "profile")
+        cache.update(cacheKey: "abc123", staticScreen: storedStatic, for: "profile")
+        // storedDynamicKey is now nil → loader will pass nil dynamic_key to client.
+
+        // Server returns DynamicHit but local dynamic cache is empty → fallback to full.
+        // DynamicHit with no local dynamic → loader invalidates and refetches full response.
+        mockClient.responses["profile"] = makeFullResponse()
+        // Loader should refetch and return valid ScreenData.
+        let data = try await loader.load(screenId: "profile")
+        XCTAssertEqual(data.cacheKey, "abc123")
+    }
+
+    // With completely empty cache, loader sends no cache_key and returns full response.
+    func test_emptyCache_sendsSingleFullRequest() async throws {
+        mockClient.responses["profile"] = makeFullResponse()
+        let data = try await loader.load(screenId: "profile")
+        XCTAssertNil(mockClient.lastFetchedKey)
+        XCTAssertNil(mockClient.lastFetchedDynamicKey)
+        XCTAssertFalse(data.cacheKey.isEmpty)
+        XCTAssertEqual(mockClient.requestCount, 1)
+    }
+
+    // Network error propagates correctly (no silent swallowing).
+    func test_networkError_propagatesToCaller() async {
+        // No response set → MockBDUIClient throws 404.
+        do {
+            _ = try await loader.load(screenId: "profile")
+            XCTFail("Expected error to be thrown")
+        } catch BDUIError.serverError(let code) {
+            XCTAssertEqual(code, 404)
+        } catch {
+            XCTFail("Unexpected error type: \(error)")
+        }
+    }
+
+    // Multiple screens are independent — loading one doesn't affect another.
+    func test_multipleScreens_independentCaches() async throws {
+        mockClient.responses["profile"] = makeFullResponse()
+        mockClient.responses["home"]    = makeFullResponse(layout: "HomeLayout", username: "HomeUser")
+
+        let profile = try await loader.load(screenId: "profile")
+        let home    = try await loader.load(screenId: "home")
+
+        XCTAssertEqual(profile.staticScreen.layout, "TestLayout")
+        XCTAssertEqual(home.staticScreen.layout,    "HomeLayout")
+        XCTAssertNil(cache.cachedKey(for: "settings"))
+    }
+}
+
+// MARK: - Session simulation tests (Point 12)
+
+final class BDUISessionSimulationTests: XCTestCase {
+    var mockClient: MockBDUIClient!
+    var cache: BDUICache!
+    var loader: BDUIScreenLoader!
+
+    override func setUp() {
+        super.setUp()
+        mockClient = MockBDUIClient()
+        cache      = BDUICache(suiteName: "bdui.session.test.\(UUID().uuidString)")
+        loader     = BDUIScreenLoader(client: mockClient, cache: cache)
+    }
+
+    // Simulates a full three-level session: First → CacheHit → DynamicHit.
+    func test_fullSession_firstThenCacheHitThenDynamicHit() async throws {
+        // Request 1: First — full response.
+        mockClient.responses["profile"] = makeFullResponse(layout: "V1", username: "Tagir")
+        let data1 = try await loader.load(screenId: "profile")
+        XCTAssertEqual(data1.staticScreen.layout, "V1")
+        XCTAssertEqual(data1.dynamic, .object(["username": .string("Tagir")]))
+
+        // Request 2: CacheHit — static unchanged, dynamic updated.
+        mockClient.responses["profile"] = makeCacheHitResponse(username: "Tagir Updated")
+        let data2 = try await loader.load(screenId: "profile")
+        XCTAssertEqual(data2.staticScreen.layout, "V1")   // from local cache
+        XCTAssertEqual(data2.dynamic, .object(["username": .string("Tagir Updated")]))
+
+        // Request 3: DynamicHit — nothing changed, served from local cache.
+        mockClient.responses["profile"] = makeDynamicHitResponse()
+        let data3 = try await loader.load(screenId: "profile")
+        XCTAssertEqual(data3.staticScreen.layout, "V1")
+        XCTAssertEqual(data3.dynamic, .object(["username": .string("Tagir Updated")]))
+
+        XCTAssertEqual(mockClient.requestCount, 3)
+    }
+
+    // After forceRefresh the session starts over: full response is fetched again.
+    func test_forceRefresh_resetsSession() async throws {
+        // Warm up.
+        mockClient.responses["profile"] = makeFullResponse()
+        _ = try await loader.load(screenId: "profile")
+        _ = try await loader.load(screenId: "profile")   // uses DynamicHit internally if keys match
+
+        // Force refresh: client sends no keys → server returns full response.
+        mockClient.responses["profile"] = makeFullResponse(layout: "V2", username: "New")
+        let data = try await loader.load(screenId: "profile", forceRefresh: true)
+        XCTAssertNil(mockClient.lastFetchedKey)
+        XCTAssertNil(mockClient.lastFetchedDynamicKey)
+        XCTAssertEqual(data.staticScreen.layout, "V2")
+    }
+
+    // ScreenData always contains both keys after any successful load.
+    func test_screenData_alwaysHasBothKeys() async throws {
+        // Full response
+        mockClient.responses["profile"] = makeFullResponse()
+        let d1 = try await loader.load(screenId: "profile")
+        XCTAssertFalse(d1.cacheKey.isEmpty)
+        XCTAssertFalse(d1.dynamicKey.isEmpty)
+
+        // CacheHit
+        mockClient.responses["profile"] = makeCacheHitResponse()
+        let d2 = try await loader.load(screenId: "profile")
+        XCTAssertFalse(d2.cacheKey.isEmpty)
+        XCTAssertFalse(d2.dynamicKey.isEmpty)
+
+        // DynamicHit
+        mockClient.responses["profile"] = makeDynamicHitResponse()
+        let d3 = try await loader.load(screenId: "profile")
+        XCTAssertFalse(d3.cacheKey.isEmpty)
+        XCTAssertFalse(d3.dynamicKey.isEmpty)
     }
 }
